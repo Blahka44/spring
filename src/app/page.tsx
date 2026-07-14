@@ -31,7 +31,7 @@ export default function Home() {
     <main className='min-h-screen bg-gray-900 text-white p-8'>
       <h1 className='text-4xl font-bold mb-8'>Spring — AI Treasury Operator</h1>
       
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Agent Wallet</h2>
           <div className='space-y-2'>
@@ -69,6 +69,32 @@ export default function Home() {
             <div className='flex justify-between'>
               <span>Auto-Execution</span>
               <span className='text-red-400'>Disabled</span>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-gray-800 rounded-lg p-6'>
+          <h2 className='text-xl font-semibold mb-4'>Policy Engine</h2>
+          <div className='space-y-4'>
+            <div>
+              <label className='text-sm text-gray-400'>Spending Limit (USDC)</label>
+              <input 
+                type='number' 
+                defaultValue='5' 
+                className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white'
+              />
+            </div>
+            <div>
+              <label className='text-sm text-gray-400'>Balance Threshold (USDC)</label>
+              <input 
+                type='number' 
+                defaultValue='10' 
+                className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white'
+              />
+            </div>
+            <div className='flex justify-between items-center'>
+              <span>Auto-Execution</span>
+              <button className='bg-red-500 px-4 py-1 rounded text-sm'>Disabled</button>
             </div>
           </div>
         </div>
