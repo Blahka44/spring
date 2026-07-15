@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import AuditLog from './components/AuditLog';
 import ApprovalQueue from './components/ApprovalQueue';
+import TransactionSimulator from './components/TransactionSimulator';
 
 interface BalanceData {
   address: string;
@@ -205,6 +206,10 @@ export default function Home() {
 
       <div className='mt-6'>
         <ApprovalQueue />
+      </div>
+
+      <div className='mt-6'>
+        <TransactionSimulator />
       </div>
 
       <div className='mt-6'>
