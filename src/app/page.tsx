@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import AuditLog from './components/AuditLog';
 
 interface BalanceData {
   address: string;
@@ -13,7 +14,6 @@ export default function Home() {
   const [data, setData] = useState<BalanceData | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // Policy state
   const [spendingLimit, setSpendingLimit] = useState(5);
   const [threshold, setThreshold] = useState(10);
   const [autoExecution, setAutoExecution] = useState(false);
@@ -30,7 +30,6 @@ export default function Home() {
       });
   }, []);
 
-  // Calculate risk based on balance vs threshold
   const balance = data?.usdc.balance || 0;
   const ratio = balance / threshold;
   let riskScore = 'LOW';
@@ -62,7 +61,6 @@ export default function Home() {
       <h1 className='text-4xl font-bold mb-8'>Spring — AI Treasury Operator</h1>
       
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-        {/* Agent Wallet */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Agent Wallet</h2>
           <div className='space-y-2'>
@@ -84,7 +82,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* System Status */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>System Status</h2>
           <div className='space-y-2'>
@@ -105,7 +102,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Policy Engine */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Policy Engine</h2>
           <div className='space-y-4'>
@@ -139,7 +135,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Risk Assessment */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Risk Assessment</h2>
           <div className='space-y-4'>
@@ -165,6 +160,10 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className='mt-6'>
+        <AuditLog />
       </div>
     </main>
   );
