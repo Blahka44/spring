@@ -18,6 +18,7 @@ export default function Home() {
   const [spendingLimit, setSpendingLimit] = useState(5);
   const [threshold, setThreshold] = useState(10);
   const [autoExecution, setAutoExecution] = useState(false);
+  const [killSwitchActive, setKillSwitchActive] = useState(false);
 
   useEffect(() => {
     fetch('/api/balance')
@@ -30,6 +31,11 @@ export default function Home() {
         setError(err.message);
       });
   }, []);
+
+  const handleKillSwitch = () => {
+    setKillSwitchActive(true);
+    setAutoExecution(false);
+  };
 
   const balance = data?.usdc.balance || 0;
   const ratio = balance / threshold;
@@ -59,7 +65,16 @@ export default function Home() {
 
   return (
     <main className='min-h-screen bg-gray-900 text-white p-8'>
-      <h1 className='text-4xl font-bold mb-8'>Spring — AI Treasury Operator</h1>
+      <div className='flex justify-between items-center mb-8'>
+        <h1 className='text-4xl font-bold'>Spring — AI Treasury Operator</h1>
+        <button 
+          onClick={handleKillSwitch}
+          disabled={killSwitchActive}
+          className={'px-6 py-2 rounded font-bold ' + (killSwitchActive ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500')}
+        >
+          {killSwitchActive ? 'STOPPED' : 'KILL SWITCH'}
+        </button>
+      </div>
       
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         <div className='bg-gray-800 rounded-lg p-6'>
@@ -88,7 +103,9 @@ export default function Home() {
           <div className='space-y-2'>
             <div className='flex justify-between'>
               <span>Agent Status</span>
-              <span className='text-green-400'>Active</span>
+              <span className={killSwitchActive ? 'text-red-400' : 'text-green-400'}>
+                {killSwitchActive ? 'Stopped' : 'Active'}
+              </span>
             </div>
             <div className='flex justify-between'>
               <span>Monitoring</span>
@@ -112,7 +129,8 @@ export default function Home() {
                 type='number' 
                 value={spendingLimit}
                 onChange={(e) => setSpendingLimit(Number(e.target.value))}
-                className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white'
+                disabled={killSwitchActive}
+                className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white disabled:opacity-50'
               />
             </div>
             <div>
@@ -121,14 +139,16 @@ export default function Home() {
                 type='number' 
                 value={threshold}
                 onChange={(e) => setThreshold(Number(e.target.value))}
-                className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white'
+                disabled={killSwitchActive}
+                className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white disabled:opacity-50'
               />
             </div>
             <div className='flex justify-between items-center'>
               <span>Auto-Execution</span>
               <button 
                 onClick={() => setAutoExecution(!autoExecution)}
-                className={'px-4 py-1 rounded text-sm ' + (autoExecution ? 'bg-green-500' : 'bg-red-500')}
+                disabled={killSwitchActive}
+                className={'px-4 py-1 rounded text-sm ' + (autoExecution ? 'bg-green-500' : 'bg-red-500') + (killSwitchActive ? ' opacity-50' : '')}
               >
                 {autoExecution ? 'Enabled' : 'Disabled'}
               </button>
