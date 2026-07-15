@@ -12,6 +12,11 @@ interface BalanceData {
 export default function Home() {
   const [data, setData] = useState<BalanceData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Policy state
+  const [spendingLimit, setSpendingLimit] = useState(5);
+  const [threshold, setThreshold] = useState(10);
+  const [autoExecution, setAutoExecution] = useState(false);
 
   useEffect(() => {
     fetch('/api/balance')
@@ -25,6 +30,31 @@ export default function Home() {
       });
   }, []);
 
+  // Calculate risk based on balance vs threshold
+  const balance = data?.usdc.balance || 0;
+  const ratio = balance / threshold;
+  let riskScore = 'LOW';
+  let riskColor = 'text-green-400';
+  let barColor = 'bg-green-400';
+  let barWidth = '20%';
+  
+  if (ratio < 0.5) {
+    riskScore = 'CRITICAL';
+    riskColor = 'text-red-500';
+    barColor = 'bg-red-500';
+    barWidth = '90%';
+  } else if (ratio < 1) {
+    riskScore = 'HIGH';
+    riskColor = 'text-orange-400';
+    barColor = 'bg-orange-400';
+    barWidth = '70%';
+  } else if (ratio < 1.5) {
+    riskScore = 'MEDIUM';
+    riskColor = 'text-yellow-400';
+    barColor = 'bg-yellow-400';
+    barWidth = '45%';
+  }
+
   const balanceClass = error ? 'text-red-400' : 'text-green-400';
 
   return (
@@ -32,6 +62,7 @@ export default function Home() {
       <h1 className='text-4xl font-bold mb-8'>Spring — AI Treasury Operator</h1>
       
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+        {/* Agent Wallet */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Agent Wallet</h2>
           <div className='space-y-2'>
@@ -41,12 +72,10 @@ export default function Home() {
             </p>
             <p className='text-sm text-gray-400 mt-4'>Network</p>
             <p>{data?.network || 'Arc Testnet'}</p>
-            
             <p className='text-sm text-gray-400 mt-4'>Native Balance</p>
             <p className='text-2xl font-bold text-blue-400'>
               {data ? data.native.balance.toFixed(4) + ' ' + data.native.unit : 'Loading...'}
             </p>
-            
             <p className='text-sm text-gray-400 mt-4'>USDC Balance</p>
             <p className={'text-2xl font-bold ' + balanceClass}>
               {data ? data.usdc.balance.toFixed(2) + ' ' + data.usdc.unit : 'Loading...'}
@@ -55,6 +84,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* System Status */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>System Status</h2>
           <div className='space-y-2'>
@@ -68,11 +98,14 @@ export default function Home() {
             </div>
             <div className='flex justify-between'>
               <span>Auto-Execution</span>
-              <span className='text-red-400'>Disabled</span>
+              <span className={autoExecution ? 'text-green-400' : 'text-red-400'}>
+                {autoExecution ? 'Enabled' : 'Disabled'}
+              </span>
             </div>
           </div>
         </div>
 
+        {/* Policy Engine */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Policy Engine</h2>
           <div className='space-y-4'>
@@ -80,7 +113,8 @@ export default function Home() {
               <label className='text-sm text-gray-400'>Spending Limit (USDC)</label>
               <input 
                 type='number' 
-                defaultValue='5' 
+                value={spendingLimit}
+                onChange={(e) => setSpendingLimit(Number(e.target.value))}
                 className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white'
               />
             </div>
@@ -88,17 +122,24 @@ export default function Home() {
               <label className='text-sm text-gray-400'>Balance Threshold (USDC)</label>
               <input 
                 type='number' 
-                defaultValue='10' 
+                value={threshold}
+                onChange={(e) => setThreshold(Number(e.target.value))}
                 className='w-full mt-1 bg-gray-700 rounded px-3 py-2 text-white'
               />
             </div>
             <div className='flex justify-between items-center'>
               <span>Auto-Execution</span>
-              <button className='bg-red-500 px-4 py-1 rounded text-sm'>Disabled</button>
+              <button 
+                onClick={() => setAutoExecution(!autoExecution)}
+                className={`px-4 py-1 rounded text-sm ${autoExecution ? 'bg-green-500' : 'bg-red-500'}`}
+              >
+                {autoExecution ? 'Enabled' : 'Disabled'}
+              </button>
             </div>
           </div>
         </div>
 
+        {/* Risk Assessment */}
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Risk Assessment</h2>
           <div className='space-y-4'>
@@ -108,17 +149,19 @@ export default function Home() {
             </div>
             <div className='flex justify-between items-center'>
               <span>Threshold</span>
-              <span className='text-yellow-400'>10 USDC</span>
+              <span className='text-yellow-400'>{threshold} USDC</span>
             </div>
             <div className='border-t border-gray-700 pt-4'>
               <div className='flex justify-between items-center mb-2'>
                 <span>Risk Score</span>
-                <span className='text-2xl font-bold text-green-400'>LOW</span>
+                <span className={'text-2xl font-bold ' + riskColor}>{riskScore}</span>
               </div>
               <div className='w-full bg-gray-700 rounded-full h-2'>
-                <div className='bg-green-400 h-2 rounded-full' style={{width: '20%'}}></div>
+                <div className={barColor + ' h-2 rounded-full transition-all duration-500'} style={{width: barWidth}}></div>
               </div>
-              <p className='text-sm text-gray-400 mt-2'>Balance is 2x above threshold</p>
+              <p className='text-sm text-gray-400 mt-2'>
+                {ratio >= 1 ? `Balance is ${ratio.toFixed(1)}x above threshold` : `Balance is ${(ratio * 100).toFixed(0)}% of threshold`}
+              </p>
             </div>
           </div>
         </div>
