@@ -19,6 +19,7 @@ export default function Home() {
   const [threshold, setThreshold] = useState(10);
   const [autoExecution, setAutoExecution] = useState(false);
   const [killSwitchActive, setKillSwitchActive] = useState(false);
+  const [isMonitoring, setIsMonitoring] = useState(false);
 
   useEffect(() => {
     fetch('/api/balance')
@@ -31,6 +32,23 @@ export default function Home() {
         setError(err.message);
       });
   }, []);
+
+  useEffect(() => {
+    if (!autoExecution || killSwitchActive) {
+      setIsMonitoring(false);
+      return;
+    }
+    
+    setIsMonitoring(true);
+    const interval = setInterval(() => {
+      console.log('Spring monitoring...');
+    }, 5000);
+    
+    return () => {
+      clearInterval(interval);
+      setIsMonitoring(false);
+    };
+  }, [autoExecution, killSwitchActive]);
 
   const handleKillSwitch = () => {
     setKillSwitchActive(true);
@@ -109,7 +127,9 @@ export default function Home() {
             </div>
             <div className='flex justify-between'>
               <span>Monitoring</span>
-              <span className='text-yellow-400'>Paused</span>
+              <span className={isMonitoring ? 'text-green-400 animate-pulse' : 'text-yellow-400'}>
+                {isMonitoring ? 'Active' : 'Paused'}
+              </span>
             </div>
             <div className='flex justify-between'>
               <span>Auto-Execution</span>
