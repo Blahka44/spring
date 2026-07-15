@@ -31,7 +31,7 @@ export default function Home() {
     <main className='min-h-screen bg-gray-900 text-white p-8'>
       <h1 className='text-4xl font-bold mb-8'>Spring — AI Treasury Operator</h1>
       
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         <div className='bg-gray-800 rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-4'>Agent Wallet</h2>
           <div className='space-y-2'>
@@ -95,6 +95,30 @@ export default function Home() {
             <div className='flex justify-between items-center'>
               <span>Auto-Execution</span>
               <button className='bg-red-500 px-4 py-1 rounded text-sm'>Disabled</button>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-gray-800 rounded-lg p-6'>
+          <h2 className='text-xl font-semibold mb-4'>Risk Assessment</h2>
+          <div className='space-y-4'>
+            <div className='flex justify-between items-center'>
+              <span>Current Balance</span>
+              <span className='text-green-400'>{data ? data.usdc.balance.toFixed(2) + ' USDC' : 'Loading...'}</span>
+            </div>
+            <div className='flex justify-between items-center'>
+              <span>Threshold</span>
+              <span className='text-yellow-400'>10 USDC</span>
+            </div>
+            <div className='border-t border-gray-700 pt-4'>
+              <div className='flex justify-between items-center mb-2'>
+                <span>Risk Score</span>
+                <span className='text-2xl font-bold text-green-400'>LOW</span>
+              </div>
+              <div className='w-full bg-gray-700 rounded-full h-2'>
+                <div className='bg-green-400 h-2 rounded-full' style={{width: '20%'}}></div>
+              </div>
+              <p className='text-sm text-gray-400 mt-2'>Balance is 2x above threshold</p>
             </div>
           </div>
         </div>
