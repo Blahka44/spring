@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import AuditLog from './components/AuditLog';
 import ApprovalQueue from './components/ApprovalQueue';
 import TransactionSimulator from './components/TransactionSimulator';
+import MarketIntel from './components/MarketIntel';
 
 interface BalanceData {
   address: string;
@@ -202,6 +203,10 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className='mt-6'>
+        <MarketIntel />
       </div>
 
       <div className='mt-6'>
