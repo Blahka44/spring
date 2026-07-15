@@ -13,6 +13,24 @@ interface BalanceData {
   network: string;
 }
 
+interface ApprovalItem {
+  id: string;
+  timestamp: string;
+  proposedAction: string;
+  reason: string;
+  amount: string;
+  status: 'pending' | 'approved' | 'rejected' | 'executing' | 'completed';
+}
+
+interface AuditEntry {
+  id: string;
+  timestamp: string;
+  action: string;
+  amount: string;
+  status: 'completed' | 'pending' | 'failed';
+  explanation: string;
+}
+
 export default function Home() {
   const [data, setData] = useState<BalanceData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +40,45 @@ export default function Home() {
   const [autoExecution, setAutoExecution] = useState(false);
   const [killSwitchActive, setKillSwitchActive] = useState(false);
   const [isMonitoring, setIsMonitoring] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  
+  const [approvalItems, setApprovalItems] = useState<ApprovalItem[]>([]);
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>([
+    {
+      id: '1',
+      timestamp: '2026-07-15 09:15:00',
+      action: 'Balance Check',
+      amount: '-',
+      status: 'completed',
+      explanation: 'Routine monitoring check. Balance: 20 USDC. Above threshold.'
+    },
+    {
+      id: '2',
+      timestamp: '2026-07-15 08:30:00',
+      action: 'Risk Assessment',
+      amount: '-',
+      status: 'completed',
+      explanation: 'Threshold: 10 USDC. Current: 20 USDC. Risk: LOW. No action needed.'
+    },
+    {
+      id: '3',
+      timestamp: '2026-07-14 17:45:00',
+      action: 'Wallet Funded',
+      amount: '+20 USDC',
+      status: 'completed',
+      explanation: 'Faucet deposit confirmed on Arc Testnet. Transaction: 0x8184...'
+    },
+    {
+      id: '4',
+      timestamp: '2026-07-14 17:30:00',
+      action: 'Agent Created',
+      amount: '-',
+      status: 'completed',
+      explanation: 'Agent wallet initialized on Arc Testnet. Address: 0x7a0f...'
+    }
+  ]);
 
+  // Fetch balance
   useEffect(() => {
     fetch('/api/balance')
       .then(res => res.json())
@@ -35,26 +91,138 @@ export default function Home() {
       });
   }, []);
 
+  // MONITORING LOOP - THE CORE AUTONOMY
   useEffect(() => {
-    if (!autoExecution || killSwitchActive) {
+    if (!autoExecution || killSwitchActive || !data) {
       setIsMonitoring(false);
+      setAlertMessage(null);
       return;
     }
     
     setIsMonitoring(true);
+    setAlertMessage('Spring is monitoring treasury... All systems normal.');
+    
     const interval = setInterval(() => {
-      console.log('Spring monitoring...');
+      const balance = data.usdc.balance;
+      const ratio = balance / threshold;
+      
+      console.log('Spring monitoring... Balance:', balance, 'Threshold:', threshold, 'Ratio:', ratio);
+      
+      // CHECK 1: Critical - below 50% of threshold
+      if (ratio < 0.5) {
+        const newItem: ApprovalItem = {
+          id: Date.now().toString(),
+          timestamp: new Date().toISOString(),
+          proposedAction: 'EMERGENCY: Halt All Operations',
+          reason: 'CRITICAL: Balance (' + balance.toFixed(2) + ' USDC) is below 50% of threshold (' + threshold + ' USDC). Immediate action required to prevent complete depletion.',
+          amount: '-',
+          status: 'pending'
+        };
+        
+        setApprovalItems(prev => {
+          if (prev.some(item => item.proposedAction === newItem.proposedAction && item.status === 'pending')) {
+            return prev;
+          }
+          return [...prev, newItem];
+        });
+        
+        setAlertMessage('CRITICAL: Balance critically low! Approval required.');
+      }
+      // CHECK 2: High - below threshold
+      else if (ratio < 1) {
+        const newItem: ApprovalItem = {
+          id: Date.now().toString(),
+          timestamp: new Date().toISOString(),
+          proposedAction: 'Pause Outgoing Payments',
+          reason: 'Balance (' + balance.toFixed(2) + ' USDC) has fallen below threshold (' + threshold + ' USDC). Risk: HIGH. Pausing payments prevents further depletion.',
+          amount: '-',
+          status: 'pending'
+        };
+        
+        setApprovalItems(prev => {
+          if (prev.some(item => item.proposedAction === newItem.proposedAction && item.status === 'pending')) {
+            return prev;
+          }
+          return [...prev, newItem];
+        });
+        
+        setAlertMessage('WARNING: Balance below threshold. Approval required.');
+      }
+      // CHECK 3: Medium - approaching threshold
+      else if (ratio < 1.5) {
+        setAlertMessage('CAUTION: Balance approaching threshold. Monitor closely.');
+      }
+      // CHECK 4: Safe
+      else {
+        setAlertMessage('Spring is monitoring treasury... All systems normal.');
+      }
     }, 5000);
     
     return () => {
       clearInterval(interval);
       setIsMonitoring(false);
+      setAlertMessage(null);
     };
-  }, [autoExecution, killSwitchActive]);
+  }, [autoExecution, killSwitchActive, data, threshold]);
 
   const handleKillSwitch = () => {
     setKillSwitchActive(true);
     setAutoExecution(false);
+    setAlertMessage('KILL SWITCH ACTIVATED. All operations halted.');
+    
+    const newEntry: AuditEntry = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      action: 'Emergency Stop',
+      amount: '-',
+      status: 'completed',
+      explanation: 'Kill switch activated by user. All autonomous operations halted immediately.'
+    };
+    setAuditLog(prev => [newEntry, ...prev]);
+  };
+
+  const handleApprove = (id: string) => {
+    setApprovalItems(prev => 
+      prev.map(item => {
+        if (item.id === id) {
+          const newEntry: AuditEntry = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            action: item.proposedAction,
+            amount: item.amount,
+            status: 'completed',
+            explanation: 'Approved by user. ' + item.reason
+          };
+          setAuditLog(audit => [newEntry, ...audit]);
+          
+          return { ...item, status: 'completed' };
+        }
+        return item;
+      })
+    );
+    setAlertMessage('Action approved and executed.');
+  };
+
+  const handleReject = (id: string) => {
+    setApprovalItems(prev => 
+      prev.map(item => {
+        if (item.id === id) {
+          const newEntry: AuditEntry = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            action: item.proposedAction,
+            amount: item.amount,
+            status: 'failed',
+            explanation: 'Rejected by user. ' + item.reason
+          };
+          setAuditLog(audit => [newEntry, ...audit]);
+          
+          return { ...item, status: 'rejected' };
+        }
+        return item;
+      })
+    );
+    setAlertMessage('Action rejected.');
   };
 
   const balance = data?.usdc.balance || 0;
@@ -85,6 +253,13 @@ export default function Home() {
 
   return (
     <main className='min-h-screen bg-gray-900 text-white p-8'>
+      {/* Alert Banner */}
+      {alertMessage && (
+        <div className={'mb-4 p-4 rounded-lg ' + (alertMessage.includes('CRITICAL') ? 'bg-red-900 border border-red-500' : alertMessage.includes('WARNING') ? 'bg-orange-900 border border-orange-500' : alertMessage.includes('CAUTION') ? 'bg-yellow-900 border border-yellow-500' : 'bg-blue-900 border border-blue-500')}>
+          <p className='font-medium'>{alertMessage}</p>
+        </div>
+      )}
+      
       <div className='flex justify-between items-center mb-8'>
         <h1 className='text-4xl font-bold'>Spring — AI Treasury Operator</h1>
         <button 
@@ -206,11 +381,11 @@ export default function Home() {
       </div>
 
       <div className='mt-6'>
-        <MarketIntel />
+        <ApprovalQueue items={approvalItems} onApprove={handleApprove} onReject={handleReject} />
       </div>
 
       <div className='mt-6'>
-        <ApprovalQueue />
+        <MarketIntel />
       </div>
 
       <div className='mt-6'>
@@ -218,7 +393,7 @@ export default function Home() {
       </div>
 
       <div className='mt-6'>
-        <AuditLog />
+        <AuditLog entries={auditLog} />
       </div>
     </main>
   );

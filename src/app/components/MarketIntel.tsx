@@ -26,7 +26,7 @@ const sources: IntelSource[] = [
     status: 'active',
     lastUpdate: '2026-07-15 14:55:00',
     cost: '0.0001 USDC',
-    data: 'Arc DEX: .4M TVL'
+    data: 'Arc DEX: 2.4M TVL'
   }
 ];
 
