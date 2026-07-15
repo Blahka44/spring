@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AuditLog from './components/AuditLog';
+import ApprovalQueue from './components/ApprovalQueue';
 
 interface BalanceData {
   address: string;
@@ -127,7 +128,7 @@ export default function Home() {
               <span>Auto-Execution</span>
               <button 
                 onClick={() => setAutoExecution(!autoExecution)}
-                className={`px-4 py-1 rounded text-sm ${autoExecution ? 'bg-green-500' : 'bg-red-500'}`}
+                className={'px-4 py-1 rounded text-sm ' + (autoExecution ? 'bg-green-500' : 'bg-red-500')}
               >
                 {autoExecution ? 'Enabled' : 'Disabled'}
               </button>
@@ -155,11 +156,15 @@ export default function Home() {
                 <div className={barColor + ' h-2 rounded-full transition-all duration-500'} style={{width: barWidth}}></div>
               </div>
               <p className='text-sm text-gray-400 mt-2'>
-                {ratio >= 1 ? `Balance is ${ratio.toFixed(1)}x above threshold` : `Balance is ${(ratio * 100).toFixed(0)}% of threshold`}
+                {ratio >= 1 ? 'Balance is ' + ratio.toFixed(1) + 'x above threshold' : 'Balance is ' + (ratio * 100).toFixed(0) + '% of threshold'}
               </p>
             </div>
           </div>
         </div>
+      </div>
+
+      <div className='mt-6'>
+        <ApprovalQueue />
       </div>
 
       <div className='mt-6'>
